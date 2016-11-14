@@ -14,14 +14,17 @@ With the exception of usenet's known features,
 This project contains three important modules,
 
 * net.310usenet.core
+
   All the core functionallity classes, are herein contained in order to assert
   the functionality of the project.
 
 * net.310usenet.gui
+
   All the Graphical User Interface classes, which are inherited by other
   javax.swing classes e.g JFrame, JPanel, etc.
 
 * net.310usetnet.utils
+
   All utilities classes, additional classes, that don't exactly fit into the
   core itself, but instead used by the core module.
 

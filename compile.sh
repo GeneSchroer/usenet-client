@@ -2,7 +2,7 @@
 
 PATH="/bin:/usr/bin:/usr/local/bin:/usr/lib:/usr/local/lib"
 
-javac -d classes/ sources/net/310usenet/core/*.java
-javac -d classes/ sources/net/310usenet/gui/*.java
-javac -d classes/ sources/net/310usenet/utils/*.java
-javac -d classes/ sources/net/310usenet/tests/*.java
+javac -cp classes/ -d classes/ sources/net/usenet_client/core/*.java
+javac -cp classes/ -d classes/ sources/net/usenet_client/gui/*.java
+javac -cp classes/ -d classes/ sources/net/usenet_client/utils/*.java
+javac -cp classes/ -d classes/ sources/net/usenet_client/tests/*.java

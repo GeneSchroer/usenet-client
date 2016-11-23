@@ -18,11 +18,6 @@ This project contains three important modules,
 All the core functionallity classes, are herein contained in order to assert
 the functionality of the project.
 
-### net.usenet\_client.gui
-
-All the Graphical User Interface classes, which are inherited by other
-javax.swing classes e.g JFrame, JPanel, etc.
-
 ### net.usenet\_client.utils
 
 All utilities classes, additional classes, that don't exactly fit into the core
@@ -32,6 +27,9 @@ itself, but instead used by the core module.
 
 The module that contains the application itself, this consists of one file,
 that will be executed as the main-class in the jar file.
+
+### net.usenet\_client.tests
+All the unit testing necessary for quality assurance.
 
 ## Roadmap
 

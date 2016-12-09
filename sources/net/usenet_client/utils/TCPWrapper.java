@@ -1,4 +1,4 @@
-package net.usenet_client.utils;
+package cse310client;
 
 import java.lang.String;
 import java.net.Socket;

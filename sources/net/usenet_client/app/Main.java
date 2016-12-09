@@ -1,6 +1,5 @@
-package net.usenet_client.app;
+package cse310client;
 
-import net.usenet_client.core.CommandLineInterface;
 
 public class Main {
   public static void main( String[] args ) {

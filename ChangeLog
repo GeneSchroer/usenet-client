@@ -1,9 +1,3 @@
-2016-11-22  Rimack Zelnick  <me@rzelnick.com>
-	* Utility class TCPWrapper implemented, and documented
-	* The app folder contains the main execution method
-	* CommandLineInterface class added
-	* First stages of UsenetWrapper implementation
-
 2016-11-15  Rimack Zelnick  <me@rzelnick.com>
 	* Modified README and .gitignore to reflect project changes
 

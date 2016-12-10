@@ -1,4 +1,5 @@
 package net.usenet_client.app;
+
 import net.usenet_client.core.CommandLineInterface;
 
 public class Main {

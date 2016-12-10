@@ -1,0 +1,94 @@
+package net.usenet_client.core;
+
+import java.lang.*;
+import java.util.*;
+import net.usenet_client.utils.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.UnknownHostException;
+
+public class CommandLineInterface implements Runnable {
+
+	static UsenetWrapper usenetWrapper;
+    	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	String userID, response;
+  	public void go( String[] args ) {
+short port = 0;
+
+        if (args.length != 2) {
+            System.out.println("Usage: Usenet <hostname> <port>");
+            return;
+        }
+
+        try {
+            port = (short) Integer.parseInt(args[1]);
+            usenetWrapper = new UsenetWrapper(args[0], port);
+        } catch (UnknownHostException ex) {
+            System.out.println("Unknown host: " + args[0]);
+            return;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return;
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid port number: " + args[1]);
+            return;
+        }
+
+        String cmd = "";
+
+        while (true) {
+            try {
+                System.out.print("USENET>");
+
+                cmd = br.readLine().toLowerCase();
+                String[] cmds = cmd.split(" ");
+
+                if (cmds[0].equals("login")) {
+                	usenetWrapper.login(cmds[1]);
+                	try {
+                	/* sleep(1) */
+                	Thread.sleep(500);
+                	} catch( Exception e ) {
+                		e.printStackTrace();
+                	}
+                    if (!response.split(" ")[1].equals("710")) {
+                    	
+                        System.out.println("Invalid UserID");
+                    } else {
+                        System.out.println("Logged in");
+                        userID = cmds[1];
+                    }
+                    response = "";
+                } else if (cmds[0].equals("help")) {
+                    printHelp();
+                } else if (cmds[0].equals("ag")) {
+                    if(cmds.length == 2)
+                        allGroups(cmds[1]);
+                    else
+                        allGroups(null);
+                } else if (cmds[0].equals("sg")) {
+                    if(cmds.length == 2)
+                        subscribedGroups(cmds[1]);
+                    else
+                        subscribedGroups(null);
+                } else if (cmds[0].equals("rg")) {
+                    if(cmds.length != 2 && cmds.length != 3)
+                        System.out.println("Invalid arguments for rg.");
+                    else
+                        readGroup(cmds);
+                } else if (cmds[0].equals("logout")) {
+                    usenetWrapper.logout();
+                    System.out.println("Goodbye!");
+                    br.close();
+                    return;
+                } else {
+                    System.out.println("Unknown command: " + cmds[0]);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+  	}
+}

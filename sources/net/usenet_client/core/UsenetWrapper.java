@@ -7,7 +7,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.io.IOException;
 
+
 public class UsenetWrapper extends TCPWrapper {
+	String version = "USENET/0.8.1";
 
     public static final int BUFFER_SIZE = 512;
 
@@ -51,7 +53,7 @@ public class UsenetWrapper extends TCPWrapper {
     }
 
     public void logout() {
-        char[] buffer = new String("LOGOUT USENET/0.8.1").toCharArray();
+        char[] buffer = new String("LOGOUT "+ version).toCharArray();
         int bufferSize = buffer.length;
         send(buffer, bufferSize);
     }
@@ -63,7 +65,7 @@ public class UsenetWrapper extends TCPWrapper {
         int bufferSize;
         int code;
 
-        buffer = new String(s + " USENET/0.8.1").toCharArray();
+        buffer = new String(s + " " + version).toCharArray();
         bufferSize = buffer.length;
 
         send(buffer, bufferSize);
@@ -76,16 +78,24 @@ public class UsenetWrapper extends TCPWrapper {
         
     }
     
-    public String receiveResponse(){
+    public String receiveResponse() throws InvalidUserIDException{
     	String response = "";
     	char[] buffer = new char[BUFFER_SIZE];
+    	int code;
     	try {
 			recv(buffer, BUFFER_SIZE);
-		} catch (IOException e) {
+			response = new String(buffer);
+			code = Integer.parseInt(response.split(" ")[1]);
+			if (code == 830)
+	            throw new InvalidUserIDException("User is already subscribed");
+	        
+	        if (code == 840)
+	            throw new InvalidUserIDException("User is already unsubscribed");
+    	} catch (IOException e) {
 			System.out.print("Error: Disconnected from server.");
 			return null;
 		} 
-    	response = new String(buffer);
+    	
     	return response;
     }
     
@@ -94,7 +104,7 @@ public class UsenetWrapper extends TCPWrapper {
         int bufferSize;
         int code;
 
-        buffer = new String(s + " USENET/0.8.1").toCharArray();
+        buffer = new String(s + " " + version).toCharArray();
         bufferSize = buffer.length;
 
         send(buffer, bufferSize);
@@ -104,11 +114,7 @@ public class UsenetWrapper extends TCPWrapper {
         /* parse server response */
         code = Integer.parseInt(response.substring(13, 16));
 
-        if (code == 830)
-            throw new InvalidUserIDException("User is already subscribed");
         
-        if (code == 840)
-            throw new InvalidUserIDException("User is already unsubscribed");
         
 
     }

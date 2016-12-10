@@ -66,7 +66,12 @@ public class CommandLineInterface implements Runnable{
                 			e.printStackTrace();
                 		}
                 	}
-                } else if (cmds[0].equals("help")) {
+                } else if (cmds[0].equals("logout")) {
+                    usenetWrapper.logout();
+                    System.out.println("Goodbye!");
+                    br.close();
+                    return;
+                }else if (cmds[0].equals("help")) {
                     printHelp();
                 } else if(!loggedIn){
                 	System.out.println("You have not logged in.");
@@ -86,12 +91,7 @@ public class CommandLineInterface implements Runnable{
                         System.out.println("Invalid arguments for rg.");
                     else
                         readGroup(cmds);
-                } else if (cmds[0].equals("logout")) {
-                    usenetWrapper.logout();
-                    System.out.println("Goodbye!");
-                    br.close();
-                    return;
-                } else {
+                }  else {
                     System.out.println("Unknown command: " + cmds[0]);
                 }
             } catch (IOException ex) {
@@ -137,7 +137,12 @@ public class CommandLineInterface implements Runnable{
         }
         
         usenetWrapper.sendRequest("GROUP");
-        response = usenetWrapper.receiveResponse();
+        try {
+			response = usenetWrapper.receiveResponse();
+		} catch (InvalidUserIDException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         lines = response.split("\n");
         groups = new String[lines.length - 5];
         
@@ -160,10 +165,10 @@ public class CommandLineInterface implements Runnable{
 
             	switch (option) {
                 	case 's':
-                    	groupsAction(groups, cmd, "SUBSCRIBE ");
+                    	groupsAction(groups, cmd, "SUBSCRIBE");
                     	break;
                 	case 'u':
-                    	groupsAction(groups, cmd, "UNSUBSCRIBE ");
+                    	groupsAction(groups, cmd, "UNSUBSCRIBE");
                     	break;
                 	case 'n':                   
                     	for (i = 0; i < ngroups && j < groups.length; i++){
@@ -272,28 +277,57 @@ public class CommandLineInterface implements Runnable{
         }
     }
     
-    private void groupsAction(String[] lines, String groups, String req) {
+    /**
+     * 
+     * @param groupList List of groups that is currently available.
+     * @param cmd The command line arguments. Example: s 1 2 5
+     * @param req Subscribe or Unsubscribe
+     */
+    private void groupsAction(String[] groupList, String cmd, String req) {
 
-        String[] args = groups.split(" ");
+    	if (!req.equals("SUBSCRIBE") && !req.equals("UNSUBSCRIBE")){
+    		System.out.println("Error: req parameter is invalid.");
+    		return;
+    	}
+        String[] args = cmd.split(" ");
         String line;
+        String[] parseLine;
+        String group;
         int i, v;
-        
+        String response;
         for (i = 1; i < args.length; i++) {
             try {
+            	/* Parse the current argument and see if it's an integer */
                 v = Integer.parseInt(args[i]);
-                if (v < 1 || v > lines.length) {
+                /* for right now, return if the entire command line is not valid */
+                if (v < 1 || v > groupList.length) {
                     System.out.println("Invalid group index.");
-                    break;
+                    return;
                 }
-                line = lines[v - 1];
-                line = line.substring(line.indexOf(')') + 2);
-                usenetWrapper.request((req + line));
+                /* Select the chosen line in the groupList */
+                line = groupList[v - 1];
+                parseLine = line.split(" ");
+              
+                group = parseLine[3];
+                
+                usenetWrapper.sendRequest((req + " " + group));
+                response = usenetWrapper.receiveResponse();
+                if(req.equals("SUBSCRIBE")){
+                    System.out.println("Subscribed to " + req);	
+                }
+                else if(req.equals("UNSUBSCRIBE")){
+                	System.out.println("Unsubscribed from " + req);
+                }
             } catch (NumberFormatException ex) {
-                System.out.println("Invalid group index.");
-                break;
+                System.out.println("Error: Invalid group index.");
+                return;
             } catch (InvalidUserIDException ex) {
                 System.out.println(ex.getMessage());
+            } catch (IndexOutOfBoundsException ex){
+            	System.out.println("Error: Number not in the list.");
+            	return;
             }
+            
         }
     }
 

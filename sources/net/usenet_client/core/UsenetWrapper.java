@@ -2,7 +2,7 @@ package net.usenet_client.core;
 import net.usenet_client.utils.*;
 
 import java.lang.String;
-
+import java.net.SocketException;
 /* What could go wrong? */
 import java.net.UnknownHostException;
 import java.io.IOException;
@@ -76,6 +76,19 @@ public class UsenetWrapper extends TCPWrapper {
         
     }
     
+    public String receiveResponse(){
+    	String response = "";
+    	char[] buffer = new char[BUFFER_SIZE];
+    	try {
+			recv(buffer, BUFFER_SIZE);
+		} catch (IOException e) {
+			System.out.print("Error: Disconnected from server.");
+			return null;
+		} 
+    	response = new String(buffer);
+    	return response;
+    }
+    
     public void request(String s) throws InvalidUserIDException{
         char[] buffer;
         int bufferSize;
@@ -99,5 +112,5 @@ public class UsenetWrapper extends TCPWrapper {
         
 
     }
-}
 
+}

@@ -47,7 +47,10 @@ public class CommandLineInterface implements Runnable{
                 String[] cmds = cmd.split(" ");
 
                 if (cmds[0].equals("login")) {
-                	if(!usenetWrapper.login(cmds[1])){
+                	if(loggedIn){
+                		System.out.println("You are already logged in.");
+                	}
+                	else if(!usenetWrapper.login(cmds[1])){
                 		System.out.println("Invalid UserID");
                 		
                 	}
@@ -58,7 +61,7 @@ public class CommandLineInterface implements Runnable{
                 		loggedIn = true;
                 		try {
                 		/* sleep(1) */
-                		Thread.sleep(500);
+                		//this.run();
                 		} catch( Exception e ) {
                 			e.printStackTrace();
                 		}
@@ -123,7 +126,7 @@ public class CommandLineInterface implements Runnable{
         String response = "";
         String cmd = "";
         String line;
-        String[] lines, args;
+        String[] groups, lines;
 
         try {
             if (n != null) 
@@ -134,39 +137,50 @@ public class CommandLineInterface implements Runnable{
         }
         
         usenetWrapper.sendRequest("GROUP");
-        
+        response = usenetWrapper.receiveResponse();
         lines = response.split("\n");
+        groups = new String[lines.length - 5];
+        
+        for(i = 0; i< groups.length;i++){
+        	groups[i] = lines[i+5];
+        	
+        }
         
         j = 0;
-        for (i = 0; i < ngroups && j < lines.length; i++){
-            System.out.println((j + 1) + ". "+ lines[j]);
+        for (i = 0; i < ngroups && j < groups.length; i++){
+            System.out.println((j + 1) + ". "+ groups[j]);
             j++; /*keeps track of current array position*/
         }
        
         do {
             System.out.print("ag>");
-            cmd = br.readLine();          
-            option = cmd.toLowerCase().charAt(0);
+            cmd = br.readLine();    
+            if (cmd != null && !cmd.equals("")){
+            	option = cmd.toLowerCase().charAt(0);
 
-            switch (option) {
-                case 's':
-                    groupsAction(lines, cmd, "SUBSCRIBE ");
-                    break;
-                case 'u':
-                    groupsAction(lines, cmd, "UNSIBSCRIBE ");
-                    break;
-                case 'n':                   
-                    for (i = 0; i < ngroups && j < lines.length; i++){
-                        System.out.println((j + 1) + ". "+ lines[j]);
-                        j++; /*keeps track of current array position*/                       
-                    }
-                    break;
-                case 'q':
-                    for (i = 0; i < lines.length; i++) /*print all groups*/
-                        System.out.println((i + 1) + ". "+ lines[i]);                 
-                    return;
+            	switch (option) {
+                	case 's':
+                    	groupsAction(groups, cmd, "SUBSCRIBE ");
+                    	break;
+                	case 'u':
+                    	groupsAction(groups, cmd, "UNSUBSCRIBE ");
+                    	break;
+                	case 'n':                   
+                    	for (i = 0; i < ngroups && j < groups.length; i++){
+                        	System.out.println((j + 1) + ". "+ groups[j]);
+                        	j++; /*keeps track of current array position*/                       
+                    	}
+                    	break;
+                	case 'q':
+                    	//for (i = 0; i < groups.length; i++) /*print all groups*/
+                        	//System.out.println((i + 1) + ". "+ groups[i]);                 
+                    	return;
+                    default:
+                    	System.out.println(cmd + " is not a valid option");
+                    	break;
+            	}
             }
-        } while (option != 'q');        
+        } while (true);        
     }
 
     private void subscribedGroups(String n) throws IOException{
@@ -185,17 +199,22 @@ public class CommandLineInterface implements Runnable{
 
         do {
             System.out.print("sg>");
-            cmd = br.readLine();            
+            cmd = br.readLine();
+            if (cmd != null){
             option = cmd.toLowerCase().charAt(0);
-
-            switch (option) {
-                case 'u':
-                    break;
-                case 'n':
-                    break;
-                case 'q':
-                    System.out.println("");// print all groups
-                    return;
+        
+            	switch (option) {
+                	case 'u':
+                		break;
+                	case 'n':
+                		break;
+                	case 'q':
+                		System.out.println("");// print all groups
+                		return;
+                	default:
+                   	   	System.out.println("Not a valid option");
+                   	   	break;
+            	}
             }
         } while (option != 'q'); 
     }
@@ -211,10 +230,15 @@ public class CommandLineInterface implements Runnable{
             if (arr.length == 3) {
                 nposts = Integer.parseInt(arr[2]);
             }
+            else if(arr.length != 2){
+            	System.out.println("Invalid number of arguments");
+            	return;
+            }
         } catch (NumberFormatException ex) {
             System.out.println("Invalid number of groups.");
             return;
         }
+
 
         String cmd = "";
 
@@ -223,7 +247,7 @@ public class CommandLineInterface implements Runnable{
             System.out.print("rg>");
 
             cmd = br.readLine().toLowerCase();
-
+           
             if (cmd.equals("r")) {
 
             } else if (cmd.equals("n")) {
@@ -292,4 +316,3 @@ public class CommandLineInterface implements Runnable{
 		}
 	}
 }
-

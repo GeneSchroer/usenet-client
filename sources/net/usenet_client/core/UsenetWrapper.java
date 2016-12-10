@@ -22,7 +22,8 @@ public class UsenetWrapper extends TCPWrapper {
         int bufferSize;
         int code;
 
-        buffer = new String("LOGIN " + username + " USENET/0.8.1").toCharArray();
+        /* */
+        buffer = new String("LOGIN " + username + " " + "USENET/0.8.1").toCharArray();
         bufferSize = buffer.length;
 
         send(buffer, bufferSize);
@@ -31,13 +32,13 @@ public class UsenetWrapper extends TCPWrapper {
         buffer = new char[BUFFER_SIZE];
 
         try {
-            while ((bufferSize = recv(buffer, BUFFER_SIZE)) != -1) {
+            /*while ((*/bufferSize = recv(buffer, BUFFER_SIZE);/*) > -1) {*/
                 response += new String(buffer);
-            }
+            //}
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
+        System.out.println(response);
         String[] loginResponse = response.split(" ");
         /* parse server response */
         code = Integer.parseInt(loginResponse[1]);

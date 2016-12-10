@@ -7,16 +7,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 
-import java.util.*;
-import net.usenet_client.utils.*;
-
 public class CommandLineInterface implements Runnable{
 
     static UsenetWrapper usenetWrapper;
     static BufferedReader br = new BufferedReader(new InputStreamReader(
             System.in));
     String userID, response;
-
+    boolean loggedIn = false;
     public void go(String[] args) {
 
         short port = 0;
@@ -50,24 +47,28 @@ public class CommandLineInterface implements Runnable{
                 String[] cmds = cmd.split(" ");
 
                 if (cmds[0].equals("login")) {
-                	usenetWrapper.login(cmds[1]);
-                	try {
-                	/* sleep(1) */
-                	Thread.sleep(500);
-                	} catch( Exception e ) {
-                		e.printStackTrace();
+                	if(!usenetWrapper.login(cmds[1])){
+                		System.out.println("Invalid UserID");
+                		
                 	}
-                    if (!response.split(" ")[1].equals("710")) {
-                    	
-                        System.out.println("Invalid UserID");
-                    } else {
-                        System.out.println("Logged in");
-                        userID = cmds[1];
-                    }
-                    response = "";
+                	else{
+                		System.out.println("Logged in");
+                		userID = cmds[1];
+                		response = "";
+                		loggedIn = true;
+                		try {
+                		/* sleep(1) */
+                		Thread.sleep(500);
+                		} catch( Exception e ) {
+                			e.printStackTrace();
+                		}
+                	}
                 } else if (cmds[0].equals("help")) {
                     printHelp();
-                } else if (cmds[0].equals("ag")) {
+                } else if(!loggedIn){
+                	System.out.println("You have not logged in.");
+                	
+            	} else if (cmds[0].equals("ag")) {
                     if(cmds.length == 2)
                         allGroups(cmds[1]);
                     else
@@ -132,7 +133,8 @@ public class CommandLineInterface implements Runnable{
             return;
         }
         
-        response= usenetWrapper.sendRequest("GROUP");
+        usenetWrapper.sendRequest("GROUP");
+        
         lines = response.split("\n");
         
         j = 0;
@@ -198,6 +200,8 @@ public class CommandLineInterface implements Runnable{
         } while (option != 'q'); 
     }
 
+    
+    
     private void readGroup(String[] arr) throws IOException {
         int n;
         int nposts = 5;
@@ -269,10 +273,10 @@ public class CommandLineInterface implements Runnable{
         }
     }
 
-    public String parseMsg(char[] raw){
+   // public String parseMsg(char[] raw){
     	
     	
-    }
+   // }
     
 	@Override
 	public void run() {

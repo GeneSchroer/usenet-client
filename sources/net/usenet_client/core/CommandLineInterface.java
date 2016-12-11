@@ -189,9 +189,16 @@ public class CommandLineInterface implements Runnable{
     }
 
     private void subscribedGroups(String n) throws IOException{
-        int ngroups = 5;
+    	int i, j, v, ngroups = 5;
         char option = '\0';
-
+        String request = "";
+        String response = "";
+        String cmd = "";
+        String line;
+        String[] groups, lines, subscribedGroups;
+        int s = 0;
+        
+        
         try {
             if (n != null) 
                 ngroups = Integer.parseInt(n);
@@ -200,28 +207,70 @@ public class CommandLineInterface implements Runnable{
             return;
         }
 
-        String cmd = "";
-
+        
+        usenetWrapper.sendRequest("GROUP");
+        try {
+			response = usenetWrapper.receiveResponse();
+		} catch (InvalidUserIDException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        lines = response.split("\n");
+        groups = new String[lines.length - 5];
+        subscribedGroups = new String[s];
+        
+        for(i = 0; i< groups.length;i++){
+        	groups[i] = lines[i+5];
+        }
+        
+    
+        String[] parse, temp;
+        
+        for(i = 0; i< groups.length; i++){
+        	parse = groups[i].split(" ");
+        	if(parse[1].equals("s,")){
+        		temp = subscribedGroups;
+        		subscribedGroups = new String[s+1];
+        		for(j = 0; j<temp.length; ++j){
+        			subscribedGroups[j] = temp[j];
+        		}
+        		subscribedGroups[s++] = groups[i];
+        	}
+        }
+        
+        
+        j = 0;
+        for (i = 0; i < ngroups && j < subscribedGroups.length; i++){
+            	System.out.println((j + 1) + ". "+ subscribedGroups[j]);
+            j++; /*keeps track of current array position*/
+        }
         do {
             System.out.print("sg>");
-            cmd = br.readLine();
-            if (cmd != null){
-            option = cmd.toLowerCase().charAt(0);
-        
+            cmd = br.readLine();    
+            if (cmd != null && !cmd.equals("")){
+            	option = cmd.toLowerCase().charAt(0);
+
             	switch (option) {
                 	case 'u':
-                		break;
-                	case 'n':
-                		break;
+                    	groupsAction(groups, cmd, "UNSUBSCRIBE");
+                    	break;
+                	case 'n':                   
+                    	for (i = 0; i < ngroups && j < subscribedGroups.length; i++){
+                        	System.out.println((j + 1) + ". "+ subscribedGroups[j]);
+                        	j++; /*keeps track of current array position*/                       
+                    	}
+                    	break;
                 	case 'q':
-                		System.out.println("");// print all groups
-                		return;
-                	default:
-                   	   	System.out.println("Not a valid option");
-                   	   	break;
+                    	//for (i = 0; i < groups.length; i++) /*print all groups*/
+                        	//System.out.println((i + 1) + ". "+ groups[i]);                 
+                    	return;
+                    default:
+                    	System.out.println(cmd + " is not a valid option");
+                    	break;
             	}
             }
-        } while (option != 'q'); 
+        } while (true);    
+        
     }
 
     
@@ -313,10 +362,10 @@ public class CommandLineInterface implements Runnable{
                 usenetWrapper.sendRequest((req + " " + group));
                 response = usenetWrapper.receiveResponse();
                 if(req.equals("SUBSCRIBE")){
-                    System.out.println("Subscribed to " + req);	
+                    System.out.println("Subscribed to " + group);	
                 }
                 else if(req.equals("UNSUBSCRIBE")){
-                	System.out.println("Unsubscribed from " + req);
+                	System.out.println("Unsubscribed from " + group);
                 }
             } catch (NumberFormatException ex) {
                 System.out.println("Error: Invalid group index.");

@@ -6,7 +6,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.Date;
 
+/*
+ */
 public class CommandLineInterface implements Runnable{
 
     static UsenetWrapper usenetWrapper;
@@ -37,6 +40,11 @@ public class CommandLineInterface implements Runnable{
             return;
         }
 
+        try {
+        } catch( Exception e ) {
+          e.printStackTrace();
+        }
+
         String cmd = "";
 
         while (true) {
@@ -60,8 +68,8 @@ public class CommandLineInterface implements Runnable{
                 		response = "";
                 		loggedIn = true;
                 		try {
-                		/* sleep(1) */
-                		//this.run();
+                      Thread.sleep( 100 );
+                      new Thread( this ).start();
                 		} catch( Exception e ) {
                 			e.printStackTrace();
                 		}
@@ -123,7 +131,6 @@ public class CommandLineInterface implements Runnable{
         int i, j, v, ngroups = 5;
         char option = '\0';
         String request = "";
-        String response = "";
         String cmd = "";
         String line;
         String[] groups, lines;
@@ -137,13 +144,16 @@ public class CommandLineInterface implements Runnable{
         }
         
         usenetWrapper.sendRequest("GROUP");
+        response = "";
+        
         try {
-			response = usenetWrapper.receiveResponse();
-		} catch (InvalidUserIDException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        lines = response.split("\n");
+          Thread.sleep( 250 );
+        } catch( InterruptedException ex ) {
+          ex.printStackTrace( );
+        }
+
+        lines = response.split("\n\n");
+        lines = lines[0].split("\n");
         groups = new String[lines.length - 5];
         
         for(i = 0; i< groups.length;i++){
@@ -159,7 +169,7 @@ public class CommandLineInterface implements Runnable{
        
         do {
             System.out.print("ag>");
-            cmd = br.readLine();    
+            cmd = br.readLine(); 
             if (cmd != null && !cmd.equals("")){
             	option = cmd.toLowerCase().charAt(0);
 
@@ -173,12 +183,10 @@ public class CommandLineInterface implements Runnable{
                 	case 'n':                   
                     	for (i = 0; i < ngroups && j < groups.length; i++){
                         	System.out.println((j + 1) + ". "+ groups[j]);
-                        	j++; /*keeps track of current array position*/                       
+                        	j++; /*keeps track of current array position*/ 
                     	}
                     	break;
                 	case 'q':
-                    	//for (i = 0; i < groups.length; i++) /*print all groups*/
-                        	//System.out.println((i + 1) + ". "+ groups[i]);                 
                     	return;
                     default:
                     	System.out.println(cmd + " is not a valid option");
@@ -192,7 +200,6 @@ public class CommandLineInterface implements Runnable{
     	int i, j, v, ngroups = 5;
         char option = '\0';
         String request = "";
-        String response = "";
         String cmd = "";
         String line;
         String[] groups, lines, subscribedGroups;
@@ -207,22 +214,23 @@ public class CommandLineInterface implements Runnable{
             return;
         }
 
-        
         usenetWrapper.sendRequest("GROUP");
+        response = "";
+
         try {
-			response = usenetWrapper.receiveResponse();
-		} catch (InvalidUserIDException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        lines = response.split("\n");
+          Thread.sleep( 250 );
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+
+        lines = response.split("\n\n");
+        lines = lines[0].split("\n");
         groups = new String[lines.length - 5];
         subscribedGroups = new String[s];
         
         for(i = 0; i< groups.length;i++){
         	groups[i] = lines[i+5];
         }
-        
     
         String[] parse, temp;
         
@@ -241,7 +249,7 @@ public class CommandLineInterface implements Runnable{
         
         j = 0;
         for (i = 0; i < ngroups && j < subscribedGroups.length; i++){
-            	System.out.println((j + 1) + ". "+ subscribedGroups[j]);
+            System.out.println((j + 1) + ". "+ subscribedGroups[j]);
             j++; /*keeps track of current array position*/
         }
         do {
@@ -261,8 +269,6 @@ public class CommandLineInterface implements Runnable{
                     	}
                     	break;
                 	case 'q':
-                    	//for (i = 0; i < groups.length; i++) /*print all groups*/
-                        	//System.out.println((i + 1) + ". "+ groups[i]);                 
                     	return;
                     default:
                     	System.out.println(cmd + " is not a valid option");
@@ -297,23 +303,105 @@ public class CommandLineInterface implements Runnable{
         String cmd = "";
 
         while (true) {
+            String header, payload, req;
+            String[] lines;
+            int index = 0;
+
+            req = "LIST " + gname + " USENET/0.8.1\n";
+            response = "";
+            usenetWrapper.send( req.toCharArray( ), req.length( ) );
+
+            try {
+              Thread.sleep( 250 );
+            } catch( InterruptedException ex ) {
+              ex.printStackTrace( );
+            }
+
+            header = response.split( "\n" )[ 0 ];
+            payload = response.split( "\n" )[ 1 ];
+            lines = payload.split( "\n" );
+
+            for( int i = index; i < nposts; ++i )
+              if( i < lines.length )
+                System.out.println( ( i + 1 ) + ". " + lines[ i ] );
 
             System.out.print("rg>");
 
             cmd = br.readLine().toLowerCase();
-           
-            if (cmd.equals("r")) {
 
+            if (cmd.equals("r")) {
             } else if (cmd.equals("n")) {
+              int i;
+              for( i = index; i < lines.length; ++i )
+                if( i < lines.length )
+                  System.out.println( ( i + 1 ) + ". " + lines[ i ] );
+
+              index += nposts;
+
+              if( lines.length == i )
+                return;
 
             } else if (cmd.equals("p")) {
+              String content, subject;
+              int k;
 
+              System.out.println( "Please select your subject: " );
+              subject = br.readLine();
+
+              Date t = new Date( );
+              System.out.println( "Write your message ( TAB when you're done ):" );
+              content = new String( ""
+                  + "Group: " + gname + "\n"
+                  + "Author: " + userID + "\n"
+                  + String.format( "Date: %ta, %tb %td %tH:%tM:%tS %tZ %tY\n",
+                    t, t, t, t, t, t, t, t )
+                  );
+
+              while( ( k = br.read( ) )!= '\t' )
+                content += ( char )k; 
+
+              req = "POST " + gname + " USENET/0.8.1\n"
+                + "post-subject:" + subject + "\n"
+                + "#-bytes:" + content.length( ) + "\n"
+                + "line-count:" + content.split( "\n" ).length + "\n\n"
+                + content;
+
+              response = "";
+              usenetWrapper.send( req.toCharArray( ), req.length( ) );
+
+              try {
+                Thread.sleep( 250 );
+              } catch( InterruptedException ex ) {
+                ex.printStackTrace( );
+              }
+
+              req = response.split( " " )[ 1 ];
+              if( req.equals( "910" ) )
+                System.out.println( "Message Sucessfully posted!" );
+              else
+                System.out.println( "Message could not be posted" );
             } else if (cmd.equals("q")) {
                 return;
             } else {
                 // implement two sub-sub-commands
                 try {
-                    n = Integer.parseInt(cmd);
+                  String messageId;
+                  int k, j;
+
+                  n = Integer.parseInt(cmd);
+                  messageId = gname + "." + lines[ n - 1 ].substring( 2, 7 );
+
+                  response = "";
+                  req = "READ " + messageId + " USENET/0.8.1\n\n";
+                  usenetWrapper.send( req.toCharArray( ), req.length( ) );
+
+                  try {
+                    Thread.sleep( 2000 );
+                  } catch( InterruptedException ex ) {
+                    ex.printStackTrace( );
+                  }
+
+                  System.out.println( response );
                 } catch (NumberFormatException ex) {
                     System.out.println("Invalid number.");
                     continue;
@@ -360,7 +448,6 @@ public class CommandLineInterface implements Runnable{
                 group = parseLine[3];
                 
                 usenetWrapper.sendRequest((req + " " + group));
-                response = usenetWrapper.receiveResponse();
                 if(req.equals("SUBSCRIBE")){
                     System.out.println("Subscribed to " + group);	
                 }
@@ -370,13 +457,10 @@ public class CommandLineInterface implements Runnable{
             } catch (NumberFormatException ex) {
                 System.out.println("Error: Invalid group index.");
                 return;
-            } catch (InvalidUserIDException ex) {
-                System.out.println(ex.getMessage());
             } catch (IndexOutOfBoundsException ex){
             	System.out.println("Error: Number not in the list.");
             	return;
             }
-            
         }
     }
 

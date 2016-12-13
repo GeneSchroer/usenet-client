@@ -37,7 +37,7 @@ public class TCPWrapper extends Socket {
    * socket.
    * @since 0.7.1
    */
-  public TCPWrapper( String hostname, short port ) throws
+  public TCPWrapper( String hostname, int port ) throws
     UnknownHostException, IOException {
     super( hostname, port );
 

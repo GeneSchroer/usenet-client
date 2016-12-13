@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Date;
 
 /*
@@ -318,9 +319,10 @@ public class CommandLineInterface implements Runnable{
             }
 
             header = response.split( "\n" )[ 0 ];
-            payload = response.split( "\n" )[ 1 ];
-            lines = payload.split( "\n" );
-
+           
+            lines = Arrays.copyOfRange(response.split("\n"), 1, response.split("\n").length-1);
+           // System.out.println("Payload = " + payload);
+            //System.out.println("Lines = " + lines);
             for( int i = index; i < nposts; ++i )
               if( i < lines.length )
                 System.out.println( ( i + 1 ) + ". " + lines[ i ] );

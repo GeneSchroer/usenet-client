@@ -388,22 +388,38 @@ public class CommandLineInterface implements Runnable{
                 // implement two sub-sub-commands
                 try {
                   String messageId;
-                  int k, j;
+                  String []msg;
+                  int nLines, i;
 
                   n = Integer.parseInt(cmd);
-                  messageId = gname + "." + lines[ n - 1 ].substring( 2, 7 );
+                  messageId = gname + "."
+                    + lines[ n - 1 ].substring( 2, 
+                       lines[ n - 1 ].indexOf( ',' ) );
 
                   response = "";
                   req = "READ " + messageId + " USENET/0.8.1\n\n";
                   usenetWrapper.send( req.toCharArray( ), req.length( ) );
 
                   try {
-                    Thread.sleep( 2000 );
+                    Thread.sleep( 250 );
                   } catch( InterruptedException ex ) {
                     ex.printStackTrace( );
                   }
 
-                  System.out.println( response );
+                  msg = response.split( "\r\n\r\n" );
+                  msg = msg[1].split( "\n" );
+                  nLines = msg.length;
+                  cmd = "n";
+                  i = 0;
+
+                  while( cmd.equals( "n" ) && i < nLines) {
+                    for(; i < i + nposts && i < nLines; ++i ) {
+                      System.out.println( msg[ i ] );
+                    }
+                  }
+
+                  System.out.print( "rg>" );
+                  cmd = br.readLine( ).toLowerCase( );
                 } catch (NumberFormatException ex) {
                     System.out.println("Invalid number.");
                     continue;

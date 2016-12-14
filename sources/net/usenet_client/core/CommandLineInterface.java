@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Date;
 
+import net.usenet_client.utils.User;
 import net.usenet_client.utils.UserFileManager;
 
 /*
@@ -20,7 +21,8 @@ public class CommandLineInterface implements Runnable{
             System.in));
     String userID, response;
     boolean loggedIn = false;
-    UserFileManager userFileManager;
+    User someone;
+
     public void go(String[] args) {
 
         short port = 0;
@@ -64,7 +66,6 @@ public class CommandLineInterface implements Runnable{
                 	}
                 	else if(!usenetWrapper.login(cmds[1])){
                 		System.out.println("Invalid UserID");
-                		
                 	}
                 	else{
                 		System.out.println("Logged in");
@@ -78,6 +79,13 @@ public class CommandLineInterface implements Runnable{
                 			e.printStackTrace();
                 		}
                 	}
+
+                  someone = UserFileManager.readUser( userID );
+
+                  if( someone == null ) {
+                    someone = new User( userID );
+                    UserFileManager.writeUser( someone );
+                  }
                 } else if (cmds[0].equals("logout")) {
                     usenetWrapper.logout();
                     System.out.println("Goodbye!");
@@ -307,8 +315,8 @@ public class CommandLineInterface implements Runnable{
         String cmd = "";
 
         while (true) {
-            String header, payload, req;
-            String[] lines;
+            String header, r, req;
+            String[] payload = new String[5];
             int index = 0;
 
             req = "LIST " + gname + " USENET/0.8.1\n";
@@ -321,14 +329,39 @@ public class CommandLineInterface implements Runnable{
               ex.printStackTrace( );
             }
 
-            header = response.split( "\n" )[ 0 ];
-           
-            lines = Arrays.copyOfRange(response.split("\n"), 1, response.split("\n").length-1);
-           // System.out.println("Payload = " + payload);
-            //System.out.println("Lines = " + lines);
-            for( int i = index; i < nposts; ++i )
-              if( i < lines.length )
-                System.out.println( ( i + 1 ) + ". " + lines[ i ] );
+            r = response;
+
+            if( r.split("\n\n").length > 0 ) {
+              header = r.split( "\n\n" )[ 0 ];
+              payload = r.split( "\n\n" );
+              payload = payload[ 1 ].split( "\n" );
+            } else {
+              payload = null;
+            }
+
+            if( nposts > payload.length )
+              nposts = payload.length;
+
+            if( payload != null ) {
+              for( int i = 0; i < payload.length; ++i ) {
+                String postHash = "nohash";
+                int temp = payload[ i ].indexOf( "," );
+
+                if( temp != -1 )
+                  postHash = payload[ i ].substring ( 2, temp );
+                else
+                  continue;
+
+                if( someone.isPostRead( gname + "." + postHash ) ) {
+                  char []temp_arr;
+                  temp_arr = payload[ i ].toCharArray( );
+                  temp_arr[ payload[ i ].indexOf( "N" ) ] = 'R';
+                  payload[ i ] = new String( temp_arr );
+                }
+
+                System.out.println( ( i + 1 ) + ". " + payload[ i ] );
+              }
+            }
 
             System.out.print("rg>");
 
@@ -342,26 +375,27 @@ public class CommandLineInterface implements Runnable{
             	if(cmdargs.length < 2){
             		System.out.println("Error: Too few arguments");
             	}
-            	for(int i = 1; i<cmdargs.length; ++i){
+            	for(int i = 1; i < cmdargs.length; ++i){
             		try{
             			post = Integer.parseInt(cmdargs[i]);
             		}catch(NumberFormatException e){
             			System.out.println("Error: " + cmdargs[i] + " is not a number.");
             		}
-            		postHash= lines[post-1].split(" ")[1].split(",")[0];
-                	UserFileManager.markPost(userID, gname, postHash);	
+
+            		postHash= payload[post-1].split(" ")[1].split(",")[0];
+                someone.readPost( gname + "." + postHash );
+                UserFileManager.writeUser( someone );
             	}
-            	
             	
             }  else if (cmd.equals("n")) {
               int i;
-              for( i = index; i < lines.length; ++i )
-                if( i < lines.length )
-                  System.out.println( ( i + 1 ) + ". " + lines[ i ] );
+
+              for( i = index; i < payload.length; ++i )
+                System.out.println( ( i + 1 ) + ". " + payload[ i ] );
 
               index += nposts;
 
-              if( lines.length == i )
+              if( payload.length >= index )
                 return;
 
             } else if (cmd.equals("p")) {
@@ -398,24 +432,26 @@ public class CommandLineInterface implements Runnable{
                 ex.printStackTrace( );
               }
 
-              req = response.split( " " )[ 1 ];
+              r = response;
+
+              req = r.split( " " )[ 1 ];
               if( req.equals( "910" ) )
                 System.out.println( "Message Sucessfully posted!" );
               else
                 System.out.println( "Message could not be posted" );
             } else if (cmd.equals("q")) {
-                return;
+              return;
             } else {
                 // implement two sub-sub-commands
                 try {
-                  String messageId;
+                  String messageId, postHash;
                   String []msg;
                   int nLines, i;
 
                   n = Integer.parseInt(cmd);
                   messageId = gname + "."
-                    + lines[ n - 1 ].substring( 2, 
-                       lines[ n - 1 ].indexOf( ',' ) );
+                    + payload[ n - 1 ].substring( 2, 
+                       payload[ n - 1 ].indexOf( ',' ) );
 
                   response = "";
                   req = "READ " + messageId + " USENET/0.8.1\n\n";
@@ -427,11 +463,17 @@ public class CommandLineInterface implements Runnable{
                     ex.printStackTrace( );
                   }
 
-                  msg = response.split( "\r\n\r\n" );
+                  r = response;
+
+                  msg = r.split( "\r\n\r\n" );
                   msg = msg[1].split( "\n" );
                   nLines = msg.length;
                   cmd = "n";
                   i = 0;
+
+                  postHash = payload[n-1].split(" ")[1].split(",")[0];
+                  someone.readPost( gname + "." + postHash );
+                  UserFileManager.writeUser( someone );
 
                   while( cmd.equals( "n" ) && i < nLines) {
                     for(; i < i + nposts && i < nLines; ++i ) {
@@ -470,7 +512,6 @@ public class CommandLineInterface implements Runnable{
         String[] parseLine;
         String group;
         int i, v;
-        String response;
         for (i = 1; i < args.length; i++) {
             try {
             	/* Parse the current argument and see if it's an integer */
@@ -515,7 +556,6 @@ public class CommandLineInterface implements Runnable{
 		try{
 			while((usenetWrapper.recv(raw_response, 512) ) != -1){
 				response += new String(raw_response);
-				
 			}
 		}catch(IOException e){
 			e.printStackTrace();

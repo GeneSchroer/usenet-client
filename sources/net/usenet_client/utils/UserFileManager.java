@@ -29,7 +29,7 @@ public class UserFileManager {
     
     public static void writeUser(User user) {
         try {
-            FileOutputStream fos = new FileOutputStream(user.getID() + ".txt");
+            FileOutputStream fos = new FileOutputStream("var/" + user.getID() + ".txt");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(user);
             oos.flush();
@@ -38,18 +38,4 @@ public class UserFileManager {
             System.out.println(e.getMessage());
         }
     }
-
-	public static void markPost(String userID, String gname, String postHash) {
-		try{
-			FileOutputStream fos = new FileOutputStream(userID + ".txt", true);
-			PrintWriter write = new PrintWriter(fos);
-			write.write(gname + " "  + postHash + "\n");
-			
-			write.close();
-		}catch (IOException e){
-			System.out.println(e.getMessage());
-		}
-		
-		
-	}
 }

@@ -25,9 +25,17 @@ public class User implements Serializable{
     public void readPost(String postID){
         postsRead.add(postID);
     }
+
+    public boolean isPostRead( String postID ) {
+      return postsRead.contains( postID );
+    }
     
     public void subscribeGroup(String gname){
         subscribedGroups.add(gname);
+    }
+
+    public boolean isSubscribedGroup( String gname ) {
+      return subscribedGroups.contains( gname );
     }
     
     public void unsubscribeGroup(String gname) {

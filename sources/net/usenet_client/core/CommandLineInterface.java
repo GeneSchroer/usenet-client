@@ -9,6 +9,8 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Date;
 
+import net.usenet_client.utils.UserFileManager;
+
 /*
  */
 public class CommandLineInterface implements Runnable{
@@ -18,6 +20,7 @@ public class CommandLineInterface implements Runnable{
             System.in));
     String userID, response;
     boolean loggedIn = false;
+    UserFileManager userFileManager;
     public void go(String[] args) {
 
         short port = 0;
@@ -331,8 +334,26 @@ public class CommandLineInterface implements Runnable{
 
             cmd = br.readLine().toLowerCase();
 
-            if (cmd.equals("r")) {
-            } else if (cmd.equals("n")) {
+            String []cmdargs = cmd.split(" ");
+            int post=0;
+            if (cmdargs[0].equals("r")) {
+            	String postHash;
+            	
+            	if(cmdargs.length < 2){
+            		System.out.println("Error: Too few arguments");
+            	}
+            	for(int i = 1; i<cmdargs.length; ++i){
+            		try{
+            			post = Integer.parseInt(cmdargs[i]);
+            		}catch(NumberFormatException e){
+            			System.out.println("Error: " + cmdargs[i] + " is not a number.");
+            		}
+            		postHash= lines[post-1].split(" ")[1].split(",")[0];
+                	UserFileManager.markPost(userID, gname, postHash);	
+            	}
+            	
+            	
+            }  else if (cmd.equals("n")) {
               int i;
               for( i = index; i < lines.length; ++i )
                 if( i < lines.length )

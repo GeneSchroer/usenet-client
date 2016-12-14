@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 
 public class UserFileManager {
     
@@ -16,7 +17,7 @@ public class UserFileManager {
     public static User readUser(String userID) {
         User user = null;
         try {
-            FileInputStream fis = new FileInputStream(userID + ".txt");
+            FileInputStream fis = new FileInputStream("var/" + userID + ".txt");
             ObjectInputStream ois = new ObjectInputStream(fis);
             user = (User)ois.readObject();
             ois.close();
@@ -37,4 +38,18 @@ public class UserFileManager {
             System.out.println(e.getMessage());
         }
     }
+
+	public static void markPost(String userID, String gname, String postHash) {
+		try{
+			FileOutputStream fos = new FileOutputStream(userID + ".txt", true);
+			PrintWriter write = new PrintWriter(fos);
+			write.write(gname + " "  + postHash + "\n");
+			
+			write.close();
+		}catch (IOException e){
+			System.out.println(e.getMessage());
+		}
+		
+		
+	}
 }
